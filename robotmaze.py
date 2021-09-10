@@ -26,7 +26,7 @@ def turn_right():
 #----- init screen
 wn = trtl.Screen()
 wn.setup(width=screen_w, height=screen_h)
-robot_image = "robot.gif"
+robot_image = "res/robot.gif"
 wn.addshape(robot_image)
 
 #----- init robot
@@ -42,34 +42,19 @@ robot.speed(2)
 robot.showturtle()
 
 #---- TODO: change maze here
-wn.bgpic("maze1.png") # other file names should be maze2.png, maze3.png
+wn.bgpic("res/maze3.png") # other file names should be maze2.png, maze3.png
 
 #---- While loops
-
-# First route
-steps = 3
-i = 0
-while (i < 2): # Outer while loop
-  while (steps > 0): # Inner while loop
-    move()
-    steps -= 1
+i = 4
+while (i > 0):
   turn_right()
-  steps = 3
-  i += 1
-
-robot.goto(startx, starty) # Reset position
-
-i = 0
-steps = 3
-while (i < 2): # Outer while loop
+  move()
   turn_left()
-  while (steps > 0): # Inner while loop
-    move()
-    steps -= 1
-  steps = 3
-  i += 1
-turn_left()
-move()
+  move()
+  i -= 1
+
+  if (i == 2):
+    robot.pencolor("red")
 
 #---- end robot movement 
 
