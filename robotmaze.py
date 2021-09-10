@@ -45,14 +45,31 @@ robot.showturtle()
 wn.bgpic("maze1.png") # other file names should be maze2.png, maze3.png
 
 #---- While loops
+
+# First route
+steps = 3
 i = 0
 while (i < 2): # Outer while loop
-    n = 0
-    while (n < 4): # Inner while loop
-        move()
-        n += 1
-    turn_right()
-    i += 1
+  while (steps > 0): # Inner while loop
+    move()
+    steps -= 1
+  turn_right()
+  steps = 3
+  i += 1
+
+robot.goto(startx, starty) # Reset position
+
+i = 0
+steps = 3
+while (i < 2): # Outer while loop
+  turn_left()
+  while (steps > 0): # Inner while loop
+    move()
+    steps -= 1
+  steps = 3
+  i += 1
+turn_left()
+move()
 
 #---- end robot movement 
 
