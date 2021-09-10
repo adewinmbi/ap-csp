@@ -42,19 +42,38 @@ robot.speed(2)
 robot.showturtle()
 
 #---- TODO: change maze here
-wn.bgpic("res/maze3.png") # other file names should be maze2.png, maze3.png
+wn.bgpic("res/maze4.png") # other file names should be maze2.png, maze3.png
 
 #---- While loops
-i = 4
-while (i > 0):
-  turn_right()
-  move()
-  turn_left()
-  move()
-  i -= 1
+steps = 4
+i = 2
 
-  if (i == 2):
-    robot.pencolor("red")
+while (i > 0):
+  while (steps > 0): # Move vertically
+    move()
+    steps -= 1
+  
+  if (i < 2): # Turn right on the second iteration
+    turn_left()
+  else:
+    turn_right()
+  steps = 2
+
+  while (steps > 0): # Move horizontally
+    move()
+    steps -= 1
+  turn_right()
+  steps = 4
+
+  i -= 1 # Decrement
+
+for n in range(0, 2): # Rotate 180 degrees
+  turn_left()
+
+steps = 4
+while (steps > 0):
+  move()
+  steps -= 1
 
 #---- end robot movement 
 
