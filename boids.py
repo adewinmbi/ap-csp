@@ -1,4 +1,4 @@
-# Implementation of the boids algorithm
+# Implementation of the boids algorithm using the turtle library
 
 import turtle as t
 import random
@@ -9,22 +9,30 @@ class Boid: # Allows a turtle to store its velocity
 
 painter = t.Turtle()
 
-turtleShapes = ["arrow", "turtle", "circle", "square", "triangle"]
+turtleShapes = ["arrow", "turtle", "circle", "square", "triangle", "arrow", "turtle", "circle", "square", "triangle"]
 turtleColors = ["darkred", "darkblue", "lime", "salmon", "indigo", "brown", "red", "blue", "green", "orange", "purple", "gold"]
 boids = []
 
+# ============= CONSTANTS =============
+screenBoundaries = 300 # Prevents movement off-screen
 spawnRange = 100 # Defines the largest distance horizontally and vertically that a turtle can "spawn" from the origin
-smoothness = 100 # Smooths movement when boid moves toward center
-collisionRange = 5 # Collider radius around each boid
+collisionRange = 12 # Collider radius around each boid
+smoothness = 10 # Smooths movment
 velChangeSmoothness = 8 # Smooths change between velocities
+edgeBounceSmoothness = 5 # Smooths movement away from screen boundaries
+maxVelocity = 30
 
-for s in turtleShapes:
+for s in turtleShapes: # Create boids
     newBoid = Boid()
     boids.append(newBoid)
 
     newTurtle = t.Turtle(shape = s)
-    newColor = random.choice(turtleColors)
+    newColor = random.choice(turtleColors) # Randomize colors
     newTurtle.fillcolor(newColor)
+    newTurtle.pencolor(newColor)
+    
+    newTurtle.shapesize(random.uniform(0.3, 1.3)) # Randomize sizes
+    newTurtle.pensize(3)
 
     newBoid.turtle = newTurtle
 
@@ -32,21 +40,22 @@ for s in turtleShapes:
 def InitPositions(): # Give each turtle a random starting position (within spawn range)
     for boid in boids:
         boid.turtle.penup()
-        boid.turtle.goto(random.randint(-spawnRange, spawnRange))
+        boid.turtle.goto(random.randint(-spawnRange, spawnRange), random.randint(-spawnRange, spawnRange))
         boid.turtle.pendown()
 
 def MoveAllBoids():
 
     # Three two-component (x & y) velocity vectors with components defined seperately
-    vx1, vy1, vx2, vy2, vx3, vy3 = 0, 0, 0, 0, 0, 0
+    vx1, vy1, vx2, vy2, vx3, vy3, vx4, vy4 = 0, 0, 0, 0, 0, 0, 0, 0
 
     for boid in boids: # One velocity vector per rule
         vx1, vy1 = RuleFlyTowardsCenter(boid)
         vx2, vy2 = RuleKeepDistance(boid)
         vx3, vy3 = RuleMatchVelocity(boid)
+        vx4, vy4 = RuleBoundPosition(boid)
 
-        boid.velocityX = boids.velocityX + vx1 + vx2 + vx3 # Combine newly calculated velocities
-        boid.velocityY = boids.velocityY + vy1 + vy2 + vy3
+        boid.velocityX = max(-maxVelocity, min(boid.velocityX + vx1 + vx2 + vx3 + vx4, maxVelocity)) # Combine newly calculated velocities; Clamp between max and min velocity
+        boid.velocityY = max(-maxVelocity, min(boid.velocityY + vy1 + vy2 + vy3 + vy4, maxVelocity))
         boid.turtle.goto(boid.turtle.xcor() + boid.velocityX, boid.turtle.ycor() + boid.velocityY) # Move turtle based on velocity
 
 
@@ -59,8 +68,8 @@ def RuleFlyTowardsCenter(boid): # Fly towards center of all other boids
             totalCenterX += b.turtle.xcor()
             totalCenterY += b.turtle.ycor()
 
-    percievedCenterX = totalCenterX / (boids.count() - 1) # Calculate average
-    percievedCenterY = totalCenterY / (boids.count() - 1)
+    percievedCenterX = totalCenterX / (len(boids) - 1) # Calculate average
+    percievedCenterY = totalCenterY / (len(boids) - 1)
 
     return ((percievedCenterX - boid.turtle.xcor()) / smoothness, (percievedCenterY - boid.turtle.ycor()) / smoothness)
 
@@ -89,14 +98,30 @@ def RuleMatchVelocity(boid): # Approach a velocity similar to all other boids
             totalVelX += b.velocityX
             totalVelY += b.velocityY
 
-    percievedVelX = totalVelX / (boids.count() - 1) # Calculate average
-    percievedVelY = totalVelY / (boids.count() - 1)
+    percievedVelX = totalVelX / (len(boids) - 1) # Calculate average
+    percievedVelY = totalVelY / (len(boids) - 1)
 
     return ((percievedVelX - boid.velocityX) / smoothness, (percievedVelY - boid.velocityY) / smoothness)
 
+def RuleBoundPosition(boid): # Prevents boids from leaving screen boundaries
+    vx, vy = 0, 0
+
+    if (boid.turtle.xcor() < -screenBoundaries): # Check if boid is beyond boundary
+        vx = edgeBounceSmoothness # Adjust velocity to bring boid within boundary
+    elif (boid.turtle.xcor() > screenBoundaries):
+        vx = -edgeBounceSmoothness
+
+    if (boid.turtle.ycor() < -screenBoundaries):
+        vy = edgeBounceSmoothness
+    if (boid.turtle.ycor() > screenBoundaries):
+        vy = -edgeBounceSmoothness
+    
+    return vx, vy
+
+# ============= MAIN LOOP =============
 InitPositions()
 
-while (True): # Main loop
+while (True):
     MoveAllBoids()
 
 wn = t.Screen()
