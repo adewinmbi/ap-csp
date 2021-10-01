@@ -50,6 +50,7 @@ def MoveAllBoids():
         boid.velocityY = boids.velocityY + vy1 + vy2 + vy3
         boid.turtle.goto(boid.turtle.xcor() + boid.velocityX, boid.turtle.ycor() + boid.velocityY) # Move turtle based on velocity
 
+
 # All rules should return tuplet containing x and y component of velocity
 def RuleFlyTowardsCenter(boid):
     totalCenterX, totalCenterY = 0
@@ -65,13 +66,21 @@ def RuleFlyTowardsCenter(boid):
 
     return ((percievedCenterX - boid.turtle.xcor()) / smoothingFactor, (percievedCenterY - boid.turtle.ycor()) / smoothingFactor)
 
+
 def RuleKeepDistance(boid):
     cx, cy = 0 # Displacement
 
     for b in boids:
         if (b != boid):
-            if (abs(b.turtle.xcor() - boid.turtle.xcor()) < collisionRange):
-                print()
+            diffX = b.turtle.xcor() - boid.turtle.xcor()
+            diffY = b.turtle.ycor() - boid.turtle.ycor()
+            if (abs(diffX) < collisionRange): # If collision happens
+                if (abs(diffY) < collisionRange):
+                    cx = cx - (diffX) # Calculate necessary displacement
+                    cy = cy - (diffY)
+
+    return (cx, cy)
+
 
 def RuleMatchVelocity(boid):
     print()
