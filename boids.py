@@ -4,7 +4,7 @@ import turtle as t
 import random
 
 class Boid: # Allows a turtle to store its velocity
-    velocityX, velocityY = 0
+    velocityX, velocityY = 0, 0
     turtle = t.Turtle()
 
 painter = t.Turtle()
@@ -14,8 +14,9 @@ turtleColors = ["darkred", "darkblue", "lime", "salmon", "indigo", "brown", "red
 boids = []
 
 spawnRange = 100 # Defines the largest distance horizontally and vertically that a turtle can "spawn" from the origin
-smoothingFactor = 100 # Smooths movement when boid moves toward center
+smoothness = 100 # Smooths movement when boid moves toward center
 collisionRange = 5 # Collider radius around each boid
+velChangeSmoothness = 8 # Smooths change between velocities
 
 for s in turtleShapes:
     newBoid = Boid()
@@ -36,10 +37,8 @@ def InitPositions(): # Give each turtle a random starting position (within spawn
 
 def MoveAllBoids():
 
-    # 'v' means velocity
-    # 'x' or 'y' represents the x or y component in a velocity vector
-    # '1', '2', or '3' defines which vector each component is part of
-    vx1, vy1, vx2, vy2, vx3, vy3 = 0
+    # Three two-component (x & y) velocity vectors with components defined seperately
+    vx1, vy1, vx2, vy2, vx3, vy3 = 0, 0, 0, 0, 0, 0
 
     for boid in boids: # One velocity vector per rule
         vx1, vy1 = RuleFlyTowardsCenter(boid)
@@ -51,10 +50,9 @@ def MoveAllBoids():
         boid.turtle.goto(boid.turtle.xcor() + boid.velocityX, boid.turtle.ycor() + boid.velocityY) # Move turtle based on velocity
 
 
-# All rules should return tuplet containing x and y component of velocity
-def RuleFlyTowardsCenter(boid):
-    totalCenterX, totalCenterY = 0
-    percievedCenterX, percievedCenterY = 0 # Center (average position) of all other boids not including itself
+def RuleFlyTowardsCenter(boid): # Fly towards center of all other boids
+    totalCenterX, totalCenterY = 0, 0
+    percievedCenterX, percievedCenterY = 0, 0 # Center (average position) of all other boids not including itself
     
     for b in boids:
         if (b != boid):
@@ -64,11 +62,11 @@ def RuleFlyTowardsCenter(boid):
     percievedCenterX = totalCenterX / (boids.count() - 1) # Calculate average
     percievedCenterY = totalCenterY / (boids.count() - 1)
 
-    return ((percievedCenterX - boid.turtle.xcor()) / smoothingFactor, (percievedCenterY - boid.turtle.ycor()) / smoothingFactor)
+    return ((percievedCenterX - boid.turtle.xcor()) / smoothness, (percievedCenterY - boid.turtle.ycor()) / smoothness)
 
 
-def RuleKeepDistance(boid):
-    cx, cy = 0 # Displacement
+def RuleKeepDistance(boid): # Prevent collisions with other boids
+    cx, cy = 0, 0 # Displacement
 
     for b in boids:
         if (b != boid):
@@ -82,8 +80,24 @@ def RuleKeepDistance(boid):
     return (cx, cy)
 
 
-def RuleMatchVelocity(boid):
-    print()
+def RuleMatchVelocity(boid): # Approach a velocity similar to all other boids
+    totalVelX, totalVelY = 0, 0
+    percievedVelX, percievedVelY = 0, 0 # Center (average position) of all other boids not including itself
+    
+    for b in boids:
+        if (b != boid):
+            totalVelX += b.velocityX
+            totalVelY += b.velocityY
+
+    percievedVelX = totalVelX / (boids.count() - 1) # Calculate average
+    percievedVelY = totalVelY / (boids.count() - 1)
+
+    return ((percievedVelX - boid.velocityX) / smoothness, (percievedVelY - boid.velocityY) / smoothness)
+
+InitPositions()
+
+while (True): # Main loop
+    MoveAllBoids()
 
 wn = t.Screen()
 wn.mainloop()
