@@ -14,7 +14,7 @@ turtleColors = ["darkred", "darkblue", "lime", "salmon", "indigo", "brown", "red
 boids = []
 
 # ============= CONSTANTS =============
-screenBoundaries = 300 # Prevents movement off-screen
+screenBoundaries = 200 # Prevents movement off-screen
 spawnRange = 100 # Defines the largest distance horizontally and vertically that a turtle can "spawn" from the origin
 collisionRange = 12 # Collider radius around each boid
 smoothness = 10 # Smooths movment
