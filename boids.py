@@ -14,13 +14,13 @@ turtleColors = ["darkred", "darkblue", "lime", "salmon", "indigo", "brown", "red
 boids = []
 
 # ============= CONSTANTS =============
-screenBoundaries = 200 # Prevents movement off-screen
-spawnRange = 100 # Defines the largest distance horizontally and vertically that a turtle can "spawn" from the origin
-collisionRange = 12 # Collider radius around each boid
-smoothness = 10 # Smooths movment
-velChangeSmoothness = 8 # Smooths change between velocities
-edgeBounceSmoothness = 5 # Smooths movement away from screen boundaries
-maxVelocity = 30
+screenBoundaries = int(input("Please input screen boundary: ")) # Prevents movement off-screen; Default 200
+spawnRange = int(input("Please input spawn range: ")) # Defines the largest distance horizontally and vertically that a turtle can "spawn" from the origin; Default 100
+collisionRange = int(input("Please input collision radius: ")) # Collider radius around each boid; Default 12
+smoothness = int(input("Please input smoothing factor: ")) # Smooths movment; Default 10
+velChangeSmoothness = int(input("Please input velocity change smoothing factor: ")) # Smooths change between velocities; Default  8
+edgeBounceSmoothness = int(input("Please input edge bounce factor: ")) # Smooths movement away from screen boundaries; Default 5
+maxVelocity = int(input("Please input max velocity: ")) # Default 30
 
 for s in turtleShapes: # Create boids
     newBoid = Boid()
