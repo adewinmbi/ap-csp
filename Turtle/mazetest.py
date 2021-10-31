@@ -2,7 +2,6 @@
 
 import random
 import turtle
-import math
 
 # Constants
 horizontal, vertical = 0, 1
