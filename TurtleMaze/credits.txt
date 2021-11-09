@@ -1,0 +1,4 @@
+maze.py - maze generation algorithm (recursive backtracking) - Brianna
+astar.py - pathfinding algorithm (a*) - Kyle
+main.py - main script - Brianna and Kyle
+maze_utilities.py - Brianna and Kyle
