@@ -1,27 +1,58 @@
 import math
 
-def generate_path(field_size):
+def generate_path(field_size, complexity=5):
+  print("Generating path...")
   path = []
 
-  vert_path_len = field_size - 6 # Padding of 3 on top and bottom
-  hori_path_len = math.floor(field_size / 5)
-  extra = field_size % 5
+  hori_path_len = math.floor(field_size / complexity)
+  vert_path_len = math.floor(field_size / 2) - 2 # Padding on top and bottom of path
   mid_y = math.floor(field_size / 2)
 
   path_x = 0 # Current x relative to the horizontal path that is being worked on
   dir = 0 # 0 = down, 1 = up
+  x_paths_created = 0
+  curr_y = mid_y
+  
   for x in range(field_size):
     path_x += 1
 
     if (path_x < hori_path_len):
-      path.append((x, mid_y))
+      path.append((x, curr_y))
     elif (path_x == hori_path_len):
       if dir == 1: # If the path should go up
-        for y in range(vert_path_len - x):
-          path.append((x, y + mid_y))
+        temp_y = 0
+        if (x_paths_created % 2 != 0):
+          # Append in reverse so the turtle travels the path cells in order
+          for y in reversed(range(vert_path_len)):
+            path.append((x, mid_y + y))
+            temp_y = mid_y + (vert_path_len - 1)
+        else:
+          for y in range(vert_path_len):
+            path.append((x, mid_y + y))
+            temp_y = mid_y + y
+        curr_y = temp_y
+
       else: # If the path should go down
-        for y in range(vert_path_len - x):
-          path.append((x, mid_y - y))
+        temp_y = 0
+        if (x_paths_created % 2 != 0):
+          # Append in reverse
+          for y in reversed(range(vert_path_len)):
+            path.append((x, mid_y - y))
+            temp_y = mid_y - (vert_path_len - 1)
+        else:
+          for y in range(vert_path_len):
+            path.append((x, mid_y - y))
+            temp_y = mid_y - y
+        curr_y = temp_y
       path_x = 0
+      x_paths_created += 1
+      if (x_paths_created % 2 == 0):
+        curr_y = mid_y
+        dir = 1 - dir
+      
+  # Remove last vertical path
+  for i in range(vert_path_len - 1):
+    path.pop()
 
   return path
+  

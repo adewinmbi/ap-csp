@@ -19,12 +19,12 @@ class proj:
 
     self.is_attacking = True
 
-  def attack(self):
-    move_task = asyncio.create_task(self.move_towards_enemy())
+  def attack(self, writer):
+    move_task = asyncio.create_task(self.move_towards_enemy(writer))
 
     asyncio.gather(move_task)
 
-  async def move_towards_enemy(self):
+  async def move_towards_enemy(self, writer):
     while (self.is_attacking and (self.target_enemy in s.all_enemies)):
       current = self.trtl.pos()
       # Detect if the projectile will hit the enemy on the next movement
@@ -32,10 +32,9 @@ class proj:
         # Destroy projectile and make enemy take damage
         self.is_attacking = False
         self.trtl.hideturtle()
-        self.target_enemy.take_damage(self.parent_tower)
+        self.target_enemy.take_damage(self.parent_tower, writer)
       else:
         angle = util.get_pos_angle(util.get_angle_degrees(current, self.target_enemy.pos))
-        angle = ( angle + 180 ) % 360
         # Move towards enemy
         self.trtl.setheading(angle)
         self.trtl.forward(self.speed)

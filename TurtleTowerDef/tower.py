@@ -4,20 +4,25 @@ import asyncio
 import stats as s
 
 class tower:
-  def __init__(self, pos=(-100, -100), damage=1, attack_radius=10, proj_speed=5, attack_speed = 0.5):
+  def __init__(self, pos=(-100, -100), damage=1, attack_radius=10, proj_speed=5, attack_cooldown = 1, color="black"):
     self.pos = pos
     self.damage = damage
     self.attack_radius = attack_radius
     self.projectile_speed = proj_speed
-    self.attack_speed = attack_speed
+    self.attack_cooldown = attack_cooldown
     self.active = True
 
     self.trtl = turtle.Turtle()
     self.trtl.penup()
     self.trtl.speed(0)
+    self.trtl.color(color)
     self.trtl.goto(pos[0], pos[1])
+    self.cooldown = 0
   
   def find_closest_enemy(self, enemy_list):    
+    """
+    Return the closest enemy to the tower in enemy_list.
+    """
     # Return if there are no enemies
     if (enemy_list == None or len(enemy_list) == 0):
       return None
@@ -32,25 +37,30 @@ class tower:
     
     return closest_enemy
 
-  def act(self):
+  def act(self, writer):
+    """
+    Update the tower every game loop.
+    """
     if (self.active):
       self.pos = self.trtl.pos()
-      self.attack(s.all_enemies)
+      self.attack(s.all_enemies, writer)
+      self.cooldown += 0.25
 
-  async def action_loop(self):
-    # Loops while tower is active
-    while (self.active):
-      self.attack(s.all_enemies)
-      await asyncio.sleep(self.attack_speed)
-
-  def attack(self, enemy_list):
+  def attack(self, enemy_list, writer):
+    """
+    Attack the closest target in enemy_list if the cooldown is met.
+    """
     # Attack target
-    target = self.find_closest_enemy(enemy_list)
-    if (target != None):
-      new_projectile = projectile.proj(self, target, self.pos, speed=self.projectile_speed)
-      new_projectile.attack()
-  
+    if (self.cooldown >= self.attack_cooldown):
+      target = self.find_closest_enemy(enemy_list)
+      if (target != None):
+        new_projectile = projectile.proj(self, target, self.pos, speed=self.projectile_speed)
+        new_projectile.attack(writer)
+
   def enemies_in_range(self, enemy_list):
+    """
+    Return all of the enemies in the tower's range in enemy_list.
+    """
     if (enemy_list == None):
       return None
     

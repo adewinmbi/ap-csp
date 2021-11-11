@@ -1,76 +1,84 @@
-import asyncio
 import turtle
 import random
-import tracemalloc
-
+import asyncio
+import path as pathmaker
 import stats as s
 import enemy
 import tower
 import text
-import path as pathmaker
-
-tracemalloc.start()
+import winlose as wl
 
 wn = turtle.Screen()
 
-# organize constants later
+# Constants
 enemies = 10
 field_size = 20
-field_offset = 100
 cell_scale = 0.5
-current_tower = "TowerA"
-enemy_spawn_interval = (1, 2) # Min and max possible seconds between each enemy spawn
+field_offset = 100
+enemy_spawn_interval = (2, 8) # Min and max possible seconds between each enemy spawn
 path = pathmaker.generate_path(field_size)
 
-# path = [(0, 10), (1, 10), (2, 10), (3, 10), (4, 10), # List of coordinates where a path exists
-        # (5, 10), (6, 10), (6, 11), (6, 12), (6, 13)]
-
+# Initialize start button turtle
 start_button = turtle.Turtle()
 start_button.color("green")
 start_button.penup()
 start_button.shapesize(4)
-start_button.goto(0,-120)
+start_button.goto((field_size + 5) * 20 * cell_scale - (field_offset), -50)
+
+score = s.score
+enemies_killed = 0
+current_tower = "Standard Tower"
 
 colors = {
   "background" : "#9fe85f",
   "path" : "#ebbd52",
-  "tower" : "#969696",
   "enemy" : "#eb4444",
   "fortress" : "#fff154",
   "text" : "#000000"
 }
 
+selectable_towers = [
+  "Standard Tower", "Sniper Tower"
+]
+
 towers = {
-  "cost" : {
-    "TowerA" : 50    
+  "Cost" : {
+    "Standard Tower" : 50,    
+    "Sniper Tower" : 100,
   },
-  "speed" : {
-    "TowerA" : 10
+  "Projectile_Speed" : {
+    "Standard Tower" : 10,
+    "Sniper Tower" : 20
   },
-  "radius" : {
-    "TowerA" : 50
+  "Attack_Radius" : {
+    "Standard Tower" : 50,
+    "Sniper Tower" : 100
   },
-  "damage" : {
-    "TowerA" : 1
+  "Damage" : {
+    "Standard Tower" : 1,
+    "Sniper Tower" : 4
   },
-  "a_speed" : {
-    "TowerA" : 0.5
+  "Cooldown" : {
+    "Standard Tower" : 0.5,
+    "Sniper Tower" : 2
+  },
+  "Color" : {
+    "Standard Tower" : "purple",
+    "Sniper Tower" : "blue"
   }
 }
 
-score = 0
-enemies_killed = 0
-health = 50 # Health of the player's fortress
-
 # Write important stats onto the screen
 writer = text.init_writer(field_size, cell_scale, field_offset, colors["text"])
-text.update_text(writer, health, s.money, score)
+text.update_text(writer, s.health, s.money, score)
 
 async def main_loop():
   while (True):
+    if (s.all_enemies is []):
+      wl.win()
     for tower in s.all_towers:
-      tower.act()
-    await asyncio.sleep(1)
+      tower.act(writer)
+    await asyncio.sleep(0.25)
 
 async def spawn_enemies():
   print("Spawning enemies...")
@@ -81,16 +89,20 @@ async def spawn_enemies():
     e.pos = cell_to_world(path[0][0], path[0][1])
     s.all_enemies.append(e)
   
+  move_tasks = []
+  delay = 0
+  boundary = (field_size - 1) * 20 * cell_scale - field_offset
   for e in s.all_enemies:
-    e.trtl.showturtle()
-    await e.move(path) # Begin enemy movement along path
-    check_fortress_collision()
-    await asyncio.sleep(random.randint(enemy_spawn_interval[0], enemy_spawn_interval[1]))
+    move_task = asyncio.create_task(e.move(path, delay, boundary, writer))
+    move_tasks.append(move_task)
+    delay += random.randint(enemy_spawn_interval[0], enemy_spawn_interval[1])
+    
+  await asyncio.gather(move_tasks[0], move_tasks[1])
 
 async def main():
   main_loop_task = asyncio.create_task(main_loop())
   spawn_enemies_task = asyncio.create_task(spawn_enemies())
-  text.update_text(writer, health, s.money, score)
+  text.update_text(writer, s.health, s.money, score)
 
   await asyncio.gather(main_loop_task, spawn_enemies_task)
 
@@ -107,12 +119,24 @@ def cell_to_world(x, y): # Convert cell coordinates to world coordinates
 def spawn_tower(mouse_x, mouse_y):
   if (mouse_inside_field(mouse_x, mouse_y)):
     tower_name = current_tower
-    cost = towers["cost"][tower_name]
-    if s.money >= cost:
-      s.money -= cost
-      text.update_text(writer, health, s.money, score)
-      new_tower = tower.tower(pos=(mouse_x, mouse_y), damage=towers["damage"][tower_name], attack_radius=towers["radius"][tower_name], proj_speed=towers["speed"][tower_name], attack_speed=towers["a_speed"][tower_name])
+    Cost = towers["Cost"][tower_name]
+    if s.money >= Cost:
+      s.money -= Cost
+      text.update_text(writer, s.health, s.money, score)
+      new_tower = tower.tower(pos=(mouse_x, mouse_y), damage=towers["Damage"][tower_name], attack_radius=towers["Attack_Radius"][tower_name], proj_speed=towers["Projectile_Speed"][tower_name], attack_cooldown=towers["Cooldown"][tower_name])
       s.all_towers.append(new_tower)
+
+def print_tower_stats():
+  print("\nSelectable Towers:")
+  for i in range(len(selectable_towers)):
+    print(str(i + 1) + "-" + selectable_towers[i])
+
+  print("\nTower stats:")
+  for stat in towers.keys():
+    print(stat + ": ", end="")
+    for curr_tower in towers[stat].keys():
+      end_symbol = ("\n" if curr_tower is list(towers[stat].keys())[len(towers[stat]) - 1] else ", ")
+      print(curr_tower + "-" + str(towers[stat][curr_tower]), end=end_symbol)
 
 def draw_field():
   print("Drawing playing field...")
@@ -141,29 +165,10 @@ def draw_field():
             drawer.fillcolor(colors["background"])
             drawer.stamp()
 
-  print("Click to place a tower on the field.\nClick the green start button when you're done.")
+  print("Press a number to select a tower, and click to place it on the field.\nClick the green start button when you're done.")
   turtle.onscreenclick(spawn_tower)
   start_button.onclick(start)
-
-def check_fortress_collision():
-  global health
-
-  for e in s.all_enemies:
-    if (e.pos[1] >= field_size * 20 * cell_scale - field_offset): # If the enemy has collided with the fortress
-      health -= e.damage
-      text.update_text(writer, health, s.money, score)
-      e.health = 0
-      s.all_enemies.remove(e)
-      del e
-
-      # Update the enemy list for every tower object
-      for t in s.all_towers:
-        t.enemy_list = s.all_enemies
-
-      if (health <= 0):
-        lose_game()
-      elif (len(s.all_enemies) <= 0):
-        win_game()
+  print_tower_stats()
 
 def mouse_inside_field(mouse_x, mouse_y):
   if (mouse_y < - field_offset):
@@ -174,19 +179,6 @@ def mouse_inside_field(mouse_x, mouse_y):
     return False
   return True
 
-# Improve win and lose messages later
-def lose_game():
-  print("You lost. Score:", score)
-
-def win_game():
-  print("You win. Score:", score)
-
 draw_field()
-
-# asyncio.run(main())
-# asyncio.run(main_loop())
-# asyncio.run(spawn_enemies())
-
-# await asyncio.gather[]
 
 wn.mainloop()
