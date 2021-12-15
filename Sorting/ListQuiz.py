@@ -44,7 +44,7 @@ def partition(list, low, high):
     i = (low - 1)
 
     for j in range(low, high):
-        if (list[j] > pivot):
+        if (list[j] > pivot): # Just change this operator to change from sorting lowest --> highest to highest --> lowest
             i += 1
             swap(list, i, j)
     
