@@ -1,23 +1,7 @@
-from ctypes import alignment
-import tkinter as tk
-import random
+# An external file called "scores.txt" is created when needed and used to store user scores
 
-# options
-# take new test
-# - Displays largest size letter
-# - if answer is correct, displays smaller letter
-# - else, calculate score out of 20 (only show 10 letters, but multiply by 2)
-#   Try again:
-#      - Reset take new test screen
-# view old test scores
-# - Shows average and past scores
-# Ex.
-#   Average = 5.4
-#   Test 1 Score = 9
-#   Test 2 Score = 4
-#   Test 2 Score = 7
-
-# TODO: Make sure the method I want to be graded is at the top
+import tkinter as tk # This standard python module was imported and used under the Python Software Foundation License
+import random # This standard python module was imported and used under the Python Software Foundation License
 
 current_letter = ""
 current_score = 0
@@ -37,8 +21,10 @@ def end_test():
     # Report score to user
     frame_end.tkraise()
     save_score(current_score)
+
+    # Display score analysis
     analysis = analyze_scores(load_scores(), current_score)
-    lbl_results.config(text="You got a " + str(current_score) + "/10!\n" + analysis, font=("Courier")) # tell user if they got worse, better, have no previous scores, would like to try again, the score they just recieved
+    lbl_results.config(text="You got a " + str(current_score) + "/10!\n" + analysis, font=("Courier"))
     
     # Reset test values
     current_letter = ""
@@ -49,8 +35,8 @@ def view_old_scores():
     display_text = ""
 
     # Append average to display to user
-    analyze_scores(load_scores())
-    display_text += "Average score: " + str(average) + "\n"
+    analyze_old_scores(load_scores())
+    display_text += "Average score: " + str(round(average, 1)) + "\n"
 
     index = 0
     for s in load_scores():
@@ -65,12 +51,12 @@ def submit_ans():
     global current_score
     global level
 
-    if (inp_answer.get() == current_letter or inp_answer.get() == current_letter.lower()):
+    if (inp_answer.get() == current_letter or inp_answer.get() == current_letter.lower()): # If the answer is correct, increase the current score
         current_score += 1
     generate_letter()
 
     level += 1
-    if (level >= 10): # REMOVE/FIX the test lasts 10 rounds
+    if (level >= 10): # Display 10 letters during one test
         level = 0
         end_test()
 
@@ -91,6 +77,7 @@ def return_to_menu():
 
 # ===== Manage User Scores =====
 
+# Load past scores from a text file and return a list containing scores
 def load_scores():
     score_list = []
 
@@ -105,21 +92,25 @@ def save_score(score):
         f.write(str(score))
         f.write('\n')
 
-def analyze_scores(user_scores, new_score):
+# Return an analysis of the scores provided as parameters
+def analyze_scores(score_list, new_score):
     global average
     average = 0
     sum = 0
 
-    for score in user_scores:
+    for score in score_list:
         sum += int(score)
-    average = sum / len(user_scores)
+    average = sum / len(score_list)
 
     if (new_score < average):
-        return "Your vision score decreased from your average of " + str(round(average, 1)) + ". Consider visiting an optometrist to improve your eyesight!"
-    else:
-        return "Your vision score improved from your average of " + str(round(average, 1)) + "! Great job staying healthy!"
+        return "Your vision score decreased and your new average is " + str(round(average, 1)) + ". Consider visiting an optometrist to improve your eyesight!"
+    elif (new_score > average):
+        return "Your vision score improved and your new average is " + str(round(average, 1)) + "! Great job maintaining healthy habits!"
+    elif (new_score == average):
+        return "Your vision score remained the same as an average of " + str(round(average, 1)) + ". Remember to book yearly checkups!"
     
-def analyze_scores(user_scores):
+# Analyze old scores without comparing to a new score
+def analyze_old_scores(user_scores):
     global average
     average = 0
     sum = 0
@@ -128,10 +119,11 @@ def analyze_scores(user_scores):
         sum += int(score)
     average = sum / len(user_scores)
 
-# ===== User Interface ===== (maybe reorganize this so everything isnt just a block of texts)
+# ===== User Interface =====
 
 # Create main window
-root = tk.Tk()
+root = tk.Tk("Vision Test")
+root.configure(bg="light blue")
 root.wm_geometry("800x500")
 
 # Create frames
@@ -148,11 +140,11 @@ frame_scores = tk.Frame(root)
 frame_scores.grid(row=0, column=0, sticky="news")
 
 # Text labels
-lbl_instructions = tk.Label(frame_main, text="Begin a new test or view old vision scores!", font="Courier", wraplength=700, justify="left")
+lbl_instructions = tk.Label(frame_main, text="Begin a new test or view old vision scores!", font=("Courier", 20), wraplength=700, justify="center", pady=10)
 lbl_instructions.pack()
 
-lbl_letter = tk.Label(frame_test, text="", font=("Courier", font_size), wraplength=700, justify="left")
-lbl_letter.pack()
+lbl_test_instructions = tk.Label(frame_test, text="Place the device 14 inches (36.6 cm) away from your face.\nIn the input box below, enter the letter you think you are reading.", font="Courier", wraplength=700, pady=20)
+lbl_test_instructions.pack()
 
 lbl_results = tk.Label(frame_end, text="", font=("Courier", font_size), wraplength=700, justify="left")
 lbl_results.pack()
@@ -165,36 +157,24 @@ inp_answer = tk.Entry(frame_test)
 inp_answer.pack()
 
 # Buttons
-btn_new_test = tk.Button(frame_main, text="Begin New Test", command=new_test)
+btn_new_test = tk.Button(frame_main, text="Begin New Test", font=("Courier", 15), command=new_test)
 btn_new_test.pack()
 
-btn_old_scores = tk.Button(frame_main, text="View Old Scores", command=view_old_scores)
+btn_old_scores = tk.Button(frame_main, text="View Old Scores", font=("Courier", 15), command=view_old_scores)
 btn_old_scores.pack()
 
-btn_submit = tk.Button(frame_test, text="Submit Answer", command=submit_ans)
+btn_submit = tk.Button(frame_test, text="Submit Answer", font=("Courier", 15), command=submit_ans)
 btn_submit.pack()
 
-btn_restart_test = tk.Button(frame_end, text="Main Menu", command=return_to_menu)
+btn_restart_test = tk.Button(frame_end, text="Main Menu", font=("Courier", 15), command=return_to_menu)
 btn_restart_test.pack()
 
-btn_back = tk.Button(frame_scores, text="Return to Menu", command=return_to_menu)
+btn_back = tk.Button(frame_scores, text="Return to Menu", font=("Courier", 15), command=return_to_menu)
 btn_back.pack(side=tk.RIGHT)
+
+# Letter text label
+lbl_letter = tk.Label(frame_test, text="", font=("Courier", font_size), wraplength=700, justify="left")
+lbl_letter.pack()
 
 frame_main.tkraise()
 root.mainloop()
-
-# # Text labels
-# lbl_username = tk.Label(frame_main_login, text='Username:',font="Courier")
-# lbl_username.pack()
-# lbl_pass = tk.Label(frame_main_login,text="Password:",font="Courier")
-# lbl_pass.pack()
-
-# # Input boxes
-# ent_username = tk.Entry(frame_main_login, bd=3)
-# ent_username.pack(pady=5)
-# ent_pass = tk.Entry(frame_main_login, bd=3)
-# ent_pass.pack(pady=10)
-
-# # Buttons
-# btn_login = tk.Button(frame_main_login, text="Login", command=test_my_button)
-# btn_login.pack()
