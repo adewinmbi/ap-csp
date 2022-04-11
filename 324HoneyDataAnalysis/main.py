@@ -79,6 +79,7 @@ def plot_subgroup(state_list, honey_list, group_plot, name):
     state = state_list[i]
     years = honey.keys() # Collect years from honey data
     group_plot.plot(years, honey, label=state) # Create plot of honey production vs. time
+    group_plot.legend()
 
   group_plot.set_title(name)
 
