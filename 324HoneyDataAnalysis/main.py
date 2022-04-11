@@ -23,8 +23,6 @@ unique_states = df['State'].unique()
 
 # Find thresholds for large and medium production categories
 for state in unique_states:
-  honey_data = df[df['State'] == state].groupby('Year')['Value']
-
   if (state == 'MISSISSIPPI'): # Mississippi data serves as threshold for medium production values
     medium_honey_threshold = df[df['State'] == state]['Value'].sum()
 
