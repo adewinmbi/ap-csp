@@ -1,4 +1,5 @@
 from cgitb import small
+from tokenize import group
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -47,10 +48,12 @@ for state in unique_states:
 
   honey_data = df[df['State'] == state].groupby('Year')['Value'] # Create array of honey values by year for current state
   # print (state, honey_data.sum()) # Display honey values by year for current state.
-  all_honey.append(honey_data.sum())
+  all_honey.append(grouped_sum)
   all_states.append(state)
 
-honey_sums = honey_data.sum()
+  print(state, state_sum)
+
+honey_sums = grouped_sum
 years = honey_sums.keys()
 
 # Without grouping
@@ -71,8 +74,6 @@ fig, (large_plot, med_plot, small_plot, all_plot) = plt.subplots(4)
 #   all_states.append(state)
 
 def plot_subgroup(state_list, honey_list, group_plot, name):
-  print(len(state_list), len(honey_list))
-
   for i in range(len(state_list)): # Loop through a list of all states
     honey = honey_list[i]
     state = state_list[i]
