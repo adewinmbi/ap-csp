@@ -32,7 +32,7 @@ for state in unique_states:
 # Determine if the state state falls into large, medium, or small honey production categories
 for state in unique_states:
   state_sum = df[df['State'] == state]['Value'].sum()
-  grouped_sum = df[df['State'] == state].groupby('Year')['Value'].sum()
+  grouped_sum = df[df['State'] == state].groupby('Year')['Value'].sum() # Sum honey values for each state by year
 
   if (state_sum >= large_honey_threshold):
     large_honey.append(grouped_sum)
@@ -45,8 +45,6 @@ for state in unique_states:
   elif (state_sum < medium_honey_threshold):
     small_honey.append(grouped_sum)
     small_producers.append(state)
-
-  honey_data = df[df['State'] == state].groupby('Year')['Value'] # Create array of honey values by year for current state
   
   all_honey.append(grouped_sum)
   all_states.append(state)
