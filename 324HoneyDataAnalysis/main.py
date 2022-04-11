@@ -49,7 +49,7 @@ for state in unique_states:
   all_honey.append(grouped_sum)
   all_states.append(state)
 
-  print(state, state_sum) # Print sum of honey production for each state
+  print(state, grouped_sum) # Print sum of honey production for each state by year
 
 honey_sums = grouped_sum
 years = honey_sums.keys()
@@ -70,7 +70,7 @@ def plot_subgroup(state_list, honey_list, group_plot, name):
     state = state_list[i]
     years = honey.keys() # Collect years from honey data
     group_plot.plot(years, honey, label=state) # Create plot of honey production vs. time
-    group_plot.legend()
+    group_plot.legend(loc=2, prop={'size': 6})
 
   group_plot.set_title(name)
 
